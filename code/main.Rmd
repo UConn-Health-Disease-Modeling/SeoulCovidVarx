@@ -547,9 +547,11 @@ I_M2_map <- ggplot(gu_boundaries %>%
     panel.grid = element_line(color = "grey90"),  # longitude and latitude lines
     axis.text = element_text(color = "black", size = 8),
     axis.title = element_blank(),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
     legend.position = "bottom",
     plot.background = element_rect(fill = "white", color = NA)
-  )
+  )+ guides(fill = guide_colorbar(barwidth = 20, barheight = 1))
 
 P_I2_map <- ggplot(gu_boundaries %>%
          mutate(
@@ -566,9 +568,11 @@ P_I2_map <- ggplot(gu_boundaries %>%
     panel.grid = element_line(color = "grey90"),
     axis.text = element_text(color = "black", size = 8),
     axis.title = element_blank(),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
     legend.position = "bottom",
     plot.background = element_rect(fill = "white", color = NA)
-  )
+  )+ guides(fill = guide_colorbar(barwidth = 20, barheight = 1))
 
 M_P1_map <- ggplot(gu_boundaries %>%
          mutate(
@@ -583,11 +587,13 @@ M_P1_map <- ggplot(gu_boundaries %>%
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.grid = element_line(color = "grey90"),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
     axis.text = element_text(color = "black", size = 8),
     axis.title = element_blank(),
     legend.position = "bottom",
     plot.background = element_rect(fill = "white", color = NA)
-  )
+  )+ guides(fill = guide_colorbar(barwidth = 20, barheight = 1))
 
 M_I1_map <- ggplot(gu_boundaries %>%
                      mutate(
@@ -603,18 +609,76 @@ M_I1_map <- ggplot(gu_boundaries %>%
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.grid = element_line(color = "grey90"),
     axis.text = element_text(color = "black", size = 8),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
     axis.title = element_blank(),
     legend.position = "bottom",
     plot.background = element_rect(fill = "white", color = NA)
-  )
+  )+ guides(fill = guide_colorbar(barwidth = 20, barheight = 1))
 
-#ggsave("Fig 4 I_M2_map.jpg", plot = I_M2_map, path = "../result/figure/", width = 8, height = 6, dpi = 300, bg = "white")
-#ggsave("Fig 4 P_I2_map.jpg", plot = P_I2_map, path = "../result/figure/", width = 8, height = 6, dpi = 300, bg = "white")
-#ggsave("Fig 4 M_P1_map.jpg", plot = M_P1_map, path = "../result/figure/", width = 8, height = 6, dpi = 300, bg = "white")
-#ggsave("Fig 4 M_I1_map.jpg", plot = M_I1_map, path = "../result/figure/", width = 8, height = 6, dpi = 300, bg = "white")
+ggsave("Fig 4 I_M2_map.jpg", plot = I_M2_map, path = "../result/figure/", width = 8, height = 6, dpi = 300, bg = "white")
+ggsave("Fig 4 P_I2_map.jpg", plot = P_I2_map, path = "../result/figure/", width = 8, height = 6, dpi = 300, bg = "white")
+ggsave("Fig 4 M_P1_map.jpg", plot = M_P1_map, path = "../result/figure/", width = 8, height = 6, dpi = 300, bg = "white")
+ggsave("Fig 4 M_I1_map.jpg", plot = M_I1_map, path = "../result/figure/", width = 8, height = 6, dpi = 300, bg = "white")
 ```
 
+## figure S1
+```{r echo=FALSE}
+daytimedata <- read.csv("../data/daytimedata.csv")
 
+daytimedata$DIST <- factor(daytimedata$DIST, levels = daytimedata$DIST[order(daytimedata$Daytime_pop_percent, decreasing = TRUE)])
+
+figure_S1 <- ggplot(daytimedata, aes(x = DIST, y = Daytime_pop_percent, fill = Daytime_pop_percent)) +
+  geom_col() +
+  scale_fill_gradient(low = "lightgreen", high = "darkgreen") +
+  theme_bw(base_size = 20) + 
+  labs(x = "District",
+       y = "Daytime population index",
+       title = "") + 
+  theme(plot.background = element_rect(fill = "white", colour = NA),
+        panel.background = element_rect(fill = "white", color = NA),
+        panel.grid.major = element_line(color = "grey90"),  
+        text = element_text(size = 24, face = "bold"), # Default text size and style for the entire plot
+        plot.title = element_text(size = 20, face = "bold"), # Title
+        axis.title = element_text(size = 20, face = "bold"), # Axis titles
+        axis.text = element_text(size = 16, face = "bold"), # Axis text
+        axis.text.x = element_text(angle = 60, hjust = 1, size = 18, face = "bold"),  
+        legend.position = "none" 
+)
+ggsave("../result/figure/figure_S1.jpg", plot = figure_S1, device = "jpg", 
+       width = 16, height = 10, dpi = 300)
+```
+
+## figure S2
+```{r echo=FALSE}
+gu_boundaries <- gu_boundaries %>%
+  left_join(daytimedata %>% select(DIST, Daytime_pop_percent),
+            by = c("gu.y" = "DIST"))
+figure_S2 <- ggplot(gu_boundaries) +
+  # Fill map by Daytime_pop_percent
+  geom_sf(aes(fill = Daytime_pop_percent), color = "white", size = 0.2) +
+  # Overlay black borders for gu-level boundaries
+  geom_sf(data = gu_boundaries, fill = NA, color = "black", size = 0.8) +
+  # Add district labels
+  geom_sf_text(aes(label = gu.y), size = 5, fontface = "bold", color = "black") +
+  # Color scale
+  scale_fill_gradient(low = "lightgreen", high = "darkgreen", name = "Daytime Population Index") +
+  # Theme consistent with your template
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.grid = element_line(color = "grey90"),  # longitude/latitude lines
+    axis.text = element_text(color = "black", size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    axis.title = element_blank(),
+    legend.position = "bottom",
+    plot.background = element_rect(fill = "white", color = NA)
+  )+ guides(fill = guide_colorbar(barwidth = 20, barheight = 1))
+
+ggsave("../result/figure/figure_S2.jpg", plot = figure_S2, device = "jpg", 
+       width = 16, height = 10, dpi = 300)
+```
 
 ## heat map for significance in each district
 ```{r echo=FALSE}
